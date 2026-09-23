@@ -5,8 +5,7 @@
     <ProjectGuid>745828b4-cd2c-490d-a0dc-102a45ac5afb</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>Stepper_DAQ.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\..\..\Common;..\..\..\Plotting;..\..\..\NI_DAQ_6001\NI_DAQ_6001\NI_DAQ_6001;..\..\..\SweepInt</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Stepper_DAQ</Name>
@@ -21,6 +20,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Basic_Examples.py" />
     <Compile Include="Stepper_DAQ.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
