@@ -27,7 +27,19 @@ from Thorlabs.MotionControl.GenericMotorCLI import *
 from Thorlabs.MotionControl.KCube.StepperMotorCLI import *
 from System import Decimal  # necessary for real world units
 
+import KST101_Lib
+
 MOD_NAME_STR = "Basic_Examples"
+
+# def Numeric_String_Test():
+#     """
+#     Test if an input is a numerical string
+#     """
+
+#     try:
+#         val = int(str(userInput))
+#     except ValueError:
+#         print("That's not an int!")
 
 def KST101_Loop():
     """
@@ -118,6 +130,27 @@ def KST101_Loop():
         # Stop Polling and Disconnect
         device.StopPolling()
         device.Disconnect()
+
+    except Exception as e:
+        print(ERR_STATEMENT)
+        print(e)
+
+def Comms_Test():
+    """
+    Comms Test with KST101
+    Is communications enabled / disabled using the KST101 class
+    
+    R. Sheehan 24 - 9 - 2026
+    """
+    
+    FUNC_NAME = ".Comms_Test()" # use this in exception handling messages
+    ERR_STATEMENT = "Error: " + MOD_NAME_STR + FUNC_NAME
+
+    try:
+        serial = "26003991"
+        theDevice = KST101_Lib.Stepper_Iface(serial)
+
+        del theDevice
 
     except Exception as e:
         print(ERR_STATEMENT)

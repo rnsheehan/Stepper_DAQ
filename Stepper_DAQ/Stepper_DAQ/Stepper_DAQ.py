@@ -33,4 +33,4 @@ if __name__ == '__main__':
 
     print(pwd)
 
-    Basic_Examples.KST101_Loop()
+    Basic_Examples.Comms_Test()
