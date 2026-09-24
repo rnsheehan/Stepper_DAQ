@@ -150,8 +150,56 @@ def Comms_Test():
         serial = "26003991"
         theDevice = KST101_Lib.Stepper_Iface(serial)
 
+        theDevice.SetLocation(5.0, True)
+        #theDevice.SetLocation(10.0, True)
+        #theDevice.SetLocation(12.2, True)
+        #theDevice.GoEmoh(True)
+
+        n_steps = 10
+        start_loc = 4.3
+        step_size = 0.2
+        theDevice.TravelFixedSteps(n_steps, start_loc, step_size)
+
         del theDevice
 
     except Exception as e:
         print(ERR_STATEMENT)
         print(e)
+
+def TheDecimalLibrary():
+
+    """
+    Introduction to the Decimal Library
+
+    R. Sheehan 24 - 9 - 2026
+    """
+
+    # One of the KST methods returns values as Decimal type object
+    # How do you work with this object going forward? 
+    # Some pages
+    # https://docs.python.org/3/library/decimal.html
+    # https://realpython.com/ref/stdlib/decimal/
+    # 
+
+    from decimal import Decimal, getcontext
+    import numpy as np
+
+    getcontext().prec = 50
+
+    results = []
+
+    for i in range(10):
+        x = Decimal(i) / Decimal(7)
+        results.append(x)
+
+    results = np.array(results, dtype = object)
+
+    print(results)
+    print()
+
+    results = np.empty(10, dtype = object)
+
+    for i in range(10):
+        results[i] = Decimal(i) / Decimal(5)
+
+    print(results)

@@ -34,3 +34,5 @@ if __name__ == '__main__':
     print(pwd)
 
     Basic_Examples.Comms_Test()
+
+    #Basic_Examples.TheDecimalLibrary()

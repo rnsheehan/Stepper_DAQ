@@ -46,7 +46,8 @@ class Stepper_Iface(object):
             self.XLO = 0.0 # position lower bound
             self.XHI = 25.0 # position upper bound
             self.DX_MIN = (50.0/1.0e+6) # step-size minimum being set to 50 nm
-
+            self.DX_MAX = 25 # step-size maximum being set to 50 nm
+            
             # Stepper Motor Serial Number
             if ser_num.isnumeric():
                 self.serial_no = ser_num
@@ -76,6 +77,8 @@ class Stepper_Iface(object):
             # close the link to the device object when it goes out of scope
             
             #print('Closing Serial link with:',self.instr_obj.name)
+
+            self.GoHome() # return the stepper to Home position before closing down
 
             # Stop Polling and Disconnect
             self.dev_obj.StopPolling()
@@ -141,6 +144,131 @@ class Stepper_Iface(object):
                 self.Comms = True # Temporary, until I can get more info on the code
             else:
                 self.ERR_STATEMENT = self.ERR_STATEMENT + '\nStepper Motor Serial Number is not defined\nCannot open comms'
+                raise Exception
+        except Exception as e:
+            print(self.ERR_STATEMENT)
+            print(e)
+
+    def GoHome(self):
+        """
+        Return the Stepper Motor To Home Position
+        """
+
+        self.FUNC_NAME = ".GoHome()" # use this in exception handling messages
+        self.ERR_STATEMENT = "Error: " + self.MOD_NAME_STR + self.FUNC_NAME
+
+        try:
+            if self.CommsStatus():
+                print("Homing Motor...")
+                self.dev_obj.Home(60000)  # 60 seconds
+                print("Motor Homed.")
+            else:
+                self.ERR_STATEMENT = self.ERR_STATEMENT + '\nComms with Stepper Motor is not established'
+                raise Exception
+        except Exception as e:
+            print(self.ERR_STATEMENT)
+            print(e)
+
+    def GoEmoh(self, loud = False):
+        """
+        Move the Stepper Motor To End Position
+        """
+
+        self.FUNC_NAME = ".GoEmoh()" # use this in exception handling messages
+        self.ERR_STATEMENT = "Error: " + self.MOD_NAME_STR + self.FUNC_NAME
+
+        try:
+            self.SetLocation(self.XHI, loud)
+        except Exception as e:
+            print(self.ERR_STATEMENT)
+            print(e)
+
+    def GetLocation(self, loud = False):
+        """
+        Report the current position of the stepper motor
+        """
+
+        # Need to be aware that self.dev_obj returns Position as a Decimal object
+        # This can complicate the handling of the output
+        # Some pages
+        # https://docs.python.org/3/library/decimal.html
+        # https://realpython.com/ref/stdlib/decimal/
+
+        self.FUNC_NAME = ".GetLocation()" # use this in exception handling messages
+        self.ERR_STATEMENT = "Error: " + self.MOD_NAME_STR + self.FUNC_NAME
+
+        try:
+            if self.CommsStatus():
+                if loud: print(f'Current Position: {self.dev_obj.Position}') # this executes
+                #print(type(self.dev_obj.Position))
+                #if loud: print( 'Current Position: %(v1)0.6f (mm)'%{"v1":float(self.dev_obj.Position) } ) # this returns an error
+                return self.dev_obj.Position
+            else:
+                self.ERR_STATEMENT = self.ERR_STATEMENT + '\nComms with Stepper Motor is not established'
+                raise Exception
+        except Exception as e:
+            print(self.ERR_STATEMENT)
+            print(e)
+
+    def SetLocation(self, new_position = 0.0, loud = False):
+        """
+        Set a new position for the stepper motor
+        """
+
+        self.FUNC_NAME = ".SetLocation()" # use this in exception handling messages
+        self.ERR_STATEMENT = "Error: " + self.MOD_NAME_STR + self.FUNC_NAME
+
+        try:
+            c1 = self.CommsStatus()
+            c2 = False if new_position < self.XLO else True
+            c3 = False if new_position > self.XHI else True
+            c10 = c1 and c2 and c3
+
+            if c10:
+                self.dev_obj.MoveTo(Decimal(new_position), 60000)
+                time.sleep(1)
+                if loud: self.GetLocation(loud)
+            else:
+                if not c1: self.ERR_STATEMENT = self.ERR_STATEMENT + '\nComms with Stepper Motor is not established'
+                if not c2 or not c3: self.ERR_STATEMENT = self.ERR_STATEMENT + '\nnew_position is outside allowed range of motion'
+                raise Exception
+        except Exception as e:
+            print(self.ERR_STATEMENT)
+            print(e)
+
+    def TravelFixedSteps(self, n_stps = 1, strt_pos = 0.0, stp_size = 1.0, load = False):
+        """
+        Iterate movement over a finite sequence of steps
+
+        n_stps (type: int) no. steps that stage must take
+        strt_pos (type: float) starting travel position in units of mm
+        stp_size (type: float) step size in units of mm for each step of the stepper
+        """
+
+        self.FUNC_NAME = ".TravelInSteps()" # use this in exception handling messages
+        self.ERR_STATEMENT = "Error: " + self.MOD_NAME_STR + self.FUNC_NAME
+
+        try:
+            c1 = self.CommsStatus()
+            c2 = False if strt_pos < self.XLO else True
+            c3 = False if strt_pos > self.XHI else True
+            c4 = True if n_stps > 1 else False
+            c5 = True if stp_size >= self.DX_MIN and stp_size < self.DX_MAX else False
+            c6 = True if strt_pos + n_stps * stp_size <= self.DX_MAX else False
+
+            c10 = c1 and c2 and c3 and c4 and c5
+
+            if c10:
+                self.SetLocation(strt_pos, True)
+                count = 0
+                x0 = strt_pos
+                while count < n_stps:
+                    x0 = x0 + stp_size
+                    self.SetLocation(x0, True)
+                    count += 1
+            else:
+                if not c1: self.ERR_STATEMENT = self.ERR_STATEMENT + '\nComms with Stepper Motor is not established'
+                if not c2 or not c3: self.ERR_STATEMENT = self.ERR_STATEMENT + '\nnew_position is outside allowed range of motion'
                 raise Exception
         except Exception as e:
             print(self.ERR_STATEMENT)
